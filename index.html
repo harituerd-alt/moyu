@@ -1,0 +1,261 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>摸鱼小工具</title>
+<style>
+/* ========== 页面基础 + emoji 支持 ========== */
+body, .explode, #result {
+  font-family: "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji",sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(20,20,20);
+  transition: background 0.4s ease;
+  color: #fff;
+}
+.box {
+  text-align: center;
+}
+
+/* ========== 按钮 ========== */
+button {
+  font-size: 24px;
+  padding: 20px 40px;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  background: #fff;
+  color: #111;
+}
+
+/* 按钮点击动画 */
+@keyframes btnClick {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+.btn-animate {
+  animation: btnClick 0.2s ease;
+}
+
+/* ========== 文案显示 ========== */
+#result {
+  margin-top: 30px;
+  font-size: 22px;
+  opacity: 0.9;
+}
+
+/* 摸鱼计数 */
+#count {
+  margin-top: 12px;
+  font-size: 14px;
+  opacity: 0.5;
+}
+
+/* 文案弹跳动画 */
+@keyframes pop {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pop {
+  display: inline-block;
+  animation: pop 0.4s ease;
+}
+
+/* ========== 终极彩蛋全屏动画 ========== */
+@keyframes explodeFade {
+  0% { transform: scale(1.5); opacity: 1; }
+  100% { transform: scale(0); opacity: 0; }
+}
+.explode {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  animation: explodeFade 1s forwards;
+  z-index: 999;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ========== 奖杯系统 ========== */
+#trophies {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  padding: 10px;
+  z-index: 1000;
+}
+
+.trophy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 24px;
+}
+
+.trophy-emoji {
+  font-size: 36px;
+}
+
+.trophy-title {
+  font-size: 14px;
+  opacity: 0.8;
+  margin-bottom: 4px;
+  text-align: center;
+  white-space: nowrap;
+}
+</style>
+</head>
+<body>
+<div class="box">
+  <button id="btn">现在该不该摸鱼？</button>
+  <div id="result"></div>
+  <div id="count"></div>
+</div>
+
+<!-- 奖杯容器 -->
+<div id="trophies"></div>
+
+<script>
+const results = [
+  "🐟 摸。现在不摸更亏。",
+  "⏰ 不摸，再撑 10 分钟。",
+  "🤫 摸一下，但别被发现。",
+  "🙅‍♂️ 别摸了，你已经摸很久了。",
+  "👀 老板此刻正在靠近你。",
+  "😌 摸鱼是为了更好地活着。",
+  "😴 今天不适合努力。",
+];
+
+const specialResults = [
+  "🎉 你被发现了！偷偷摸鱼也要炫一下~",
+  "🔥 连续摸鱼三次！老板可能注意到了！",
+  "💥 今天的摸鱼王诞生！别太得意~",
+  "🌀 你已经进入摸鱼深渊，无法自拔…"
+];
+
+const colors = [
+  "rgb(20,20,20)",
+  "rgb(32,32,48)",
+  "rgb(48,32,32)",
+  "rgb(24,40,32)",
+  "rgb(40,24,40)",
+  "rgb(18,30,36)",
+];
+
+const trophyTitles = [
+  "初级摸鱼者",
+  "中级摸鱼者",
+  "高级摸鱼者",
+  "摸鱼达人",
+  "摸法师",
+  "摸道祖师",
+  "摸仙女王",
+  "摸神",
+  "摸尊",
+  "终极大摸王"
+];
+
+const btn = document.getElementById("btn");
+const result = document.getElementById("result");
+const countEl = document.getElementById("count");
+const trophyContainer = document.getElementById("trophies");
+
+let count = localStorage.getItem("fishCount");
+count = count ? Number(count) : 0;
+countEl.textContent = `你今天已经摸了 ${count} 次鱼`;
+
+// 检查是否该发奖杯
+function checkTrophy(count) {
+  const maxTrophies = 10;
+  const trophyIndex = Math.floor(count / 50) - 1;
+  if (count % 50 === 0 && trophyIndex < maxTrophies) {
+    const trophy = document.createElement("div");
+    trophy.classList.add("trophy");
+
+    const title = document.createElement("div");
+    title.classList.add("trophy-title");
+    title.textContent = trophyTitles[trophyIndex] || "摸鱼高手";
+
+    const emoji = document.createElement("div");
+    emoji.classList.add("trophy-emoji");
+    emoji.textContent = "🏆";
+
+    trophy.appendChild(title);
+    trophy.appendChild(emoji);
+
+    trophyContainer.appendChild(trophy);
+  }
+}
+
+btn.addEventListener("click", () => {
+  let text;
+  let specialTriggered = false;
+
+  // 按钮弹跳动画
+  btn.classList.remove("btn-animate");
+  void btn.offsetWidth;
+  btn.classList.add("btn-animate");
+
+  // 彩蛋逻辑
+  if (count >= 3 && Math.random() < 0.5) {
+    text = specialResults[Math.floor(Math.random() * specialResults.length)];
+    document.body.style.transition = "background 0.1s ease";
+    const flashColor = colors[Math.floor(Math.random() * colors.length)];
+    document.body.style.background = flashColor;
+    setTimeout(() => {
+      document.body.style.transition = "background 0.4s ease";
+    }, 200);
+    specialTriggered = true;
+  } else {
+    text = results[Math.floor(Math.random() * results.length)];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    document.body.style.background = color;
+  }
+
+  // 文案显示动画
+  result.textContent = "";
+  const span = document.createElement("span");
+  span.textContent = text;
+  span.classList.add("pop");
+  result.appendChild(span);
+
+  // 更新计数
+  count++;
+  localStorage.setItem("fishCount", count);
+  countEl.textContent = `你今天已经摸了 ${count} 次鱼`;
+
+  // 检查奖杯
+  checkTrophy(count);
+
+  // 终极彩蛋
+  if (count >= 5 && specialTriggered) {
+    const emojiChar = [...text][0];
+    for (let i = 0; i < 20; i++) {
+      const e = document.createElement("div");
+      e.textContent = emojiChar;
+      e.classList.add("explode");
+      e.style.top = Math.random() * 100 + "%";
+      e.style.left = Math.random() * 100 + "%";
+      e.style.fontSize = (20 + Math.random()*40) + "px";
+      document.body.appendChild(e);
+      e.addEventListener("animationend", () => e.remove());
+    }
+  }
+});
+</script>
+</body>
+</html>
